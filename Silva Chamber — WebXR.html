@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<!-- saved from url=(0053)file:///Users/denisemcaprioli/Downloads/silva-vr.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Silva Chamber — WebXR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./Silva Chamber — WebXR_files/css2" rel="stylesheet">
+<style>
+  :root{
+    --void:#070611;
+    --void-2:#0e0c22;
+    --gold:#d6b06a;
+    --gold-dim:#8d7340;
+    --glow:#cfe4ff;
+    --text:#e9e3d3;
+    --muted:#9a937f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);font-family:"EB Garamond",Georgia,serif}
+  canvas{display:block}
+
+  /* ---- 2D intro / control overlay ---- */
+  #intro{
+    position:fixed;inset:0;z-index:10;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:6vh 5vw;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(50,40,90,.55), transparent 60%),
+      radial-gradient(140% 120% at 50% 120%, rgba(120,90,40,.18), transparent 55%),
+      linear-gradient(180deg,var(--void),var(--void-2));
+    transition:opacity 1.1s ease;
+  }
+  #intro.gone{opacity:0;pointer-events:none}
+
+  .crest{
+    width:84px;height:84px;margin-bottom:1.4rem;opacity:.9;
+    filter:drop-shadow(0 0 18px rgba(214,176,106,.35));
+  }
+  h1{
+    font-family:"Cinzel",serif;font-weight:600;letter-spacing:.14em;
+    font-size:clamp(1.9rem,4.4vw,3.1rem);
+    background:linear-gradient(180deg,#f6e9c6,var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-align:center;line-height:1.1;
+  }
+  .tagline{
+    margin-top:.7rem;color:var(--muted);font-style:italic;
+    font-size:clamp(.95rem,2vw,1.18rem);letter-spacing:.02em;text-align:center;max-width:34ch;
+  }
+
+  .cards{
+    display:grid;grid-template-columns:repeat(2,minmax(150px,230px));
+    gap:14px;margin:2.4rem 0 1.7rem;
+  }
+  .card{
+    position:relative;border:1px solid rgba(214,176,106,.28);
+    border-radius:14px;padding:1.05rem 1.1rem;cursor:pointer;
+    background:linear-gradient(160deg,rgba(255,255,255,.045),rgba(255,255,255,.01));
+    transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+    overflow:hidden;
+  }
+  .card:hover{transform:translateY(-3px);border-color:var(--gold);
+    box-shadow:0 10px 30px -12px rgba(214,176,106,.5)}
+  .card .n{font-family:"Cinzel",serif;font-size:.7rem;letter-spacing:.22em;color:var(--gold-dim)}
+  .card .t{font-family:"Cinzel",serif;font-size:1.04rem;letter-spacing:.05em;color:var(--text);margin:.3rem 0 .35rem}
+  .card .d{font-size:.86rem;color:var(--muted);line-height:1.35}
+  .card .glyph{position:absolute;right:-6px;bottom:-10px;font-size:3.4rem;opacity:.07;font-family:"Cinzel",serif}
+
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin-bottom:1.2rem}
+  .toggle{
+    display:flex;align-items:center;gap:.5rem;font-size:.86rem;color:var(--muted);
+    border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:.45rem .85rem;cursor:pointer;
+    user-select:none;transition:border-color .2s,color .2s;
+  }
+  .toggle.on{border-color:var(--gold);color:var(--text)}
+  .toggle .dot{width:9px;height:9px;border-radius:50%;background:#444;transition:background .2s}
+  .toggle.on .dot{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+  .vr-slot{margin-top:.4rem}
+  /* style three's injected VRButton */
+  #VRButton{
+    font-family:"Cinzel",serif !important;letter-spacing:.16em !important;
+    border:1px solid var(--gold) !important;border-radius:12px !important;
+    background:rgba(214,176,106,.08) !important;color:var(--gold) !important;
+  }
+
+  .hint{margin-top:1.4rem;font-size:.8rem;color:var(--muted);max-width:42ch;text-align:center;line-height:1.45}
+  .hint b{color:var(--gold-dim);font-weight:400;font-style:normal}
+
+  #status{position:fixed;left:0;right:0;bottom:14px;z-index:11;text-align:center;
+    font-size:.78rem;color:var(--muted);letter-spacing:.04em;pointer-events:none}
+
+  /* in-session caption shown on desktop preview */
+  #caption{
+    position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:9;
+    max-width:60ch;text-align:center;font-style:italic;color:var(--text);
+    font-size:clamp(1rem,2.4vw,1.25rem);text-shadow:0 2px 14px rgba(0,0,0,.7);
+    opacity:0;transition:opacity .6s ease;padding:0 1rem;pointer-events:none;
+  }
+  #caption.show{opacity:.96}
+  .endbar{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:11;display:none;gap:10px}
+  .endbar.show{display:flex}
+  .endbar button{font-family:"Cinzel",serif;letter-spacing:.1em;font-size:.78rem;
+    color:var(--text);background:rgba(0,0,0,.4);border:1px solid rgba(214,176,106,.4);
+    border-radius:999px;padding:.5rem 1rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <svg class="crest" viewBox="0 0 100 100" fill="none" stroke="var(--gold)" stroke-width="2">
+    <path d="M50 10 L90 84 L10 84 Z"></path>
+    <path d="M50 10 L50 84 M28 84 L50 50 L72 84" stroke-width="1" opacity=".6"></path>
+    <circle cx="50" cy="44" r="6" fill="var(--gold)" stroke="none"></circle>
+  </svg>
+  <h1>THE SILVA CHAMBER</h1>
+  <p class="tagline">An immersive King's Chamber for the Mental Screen, the Mental Laboratory, and the descent to Alpha.</p>
+
+  <div class="cards" id="cards"><div class="card"><div class="n">SESSION I</div><div class="t">Alpha Countdown</div>
+      <div class="d">The classic 10→1 descent into the alpha level.</div><div class="glyph">X</div></div><div class="card"><div class="n">SESSION II</div><div class="t">Mental Screen</div>
+      <div class="d">Project images on the screen above your line of sight.</div><div class="glyph">▢</div></div><div class="card"><div class="n">SESSION III</div><div class="t">White Light Healing</div>
+      <div class="d">Draw healing white light down through the apex.</div><div class="glyph">☀</div></div><div class="card"><div class="n">SESSION IV</div><div class="t">Silva Counselor</div>
+      <div class="d">Meet your counselors at the Mental Laboratory.</div><div class="glyph">◬</div></div></div>
+
+  <div class="controls">
+    <div class="toggle" id="breathToggle"><span class="dot"></span>Breath sensing (mic)</div>
+    <div class="toggle on" id="voiceToggle"><span class="dot"></span>Voice guidance</div>
+    <div class="toggle on" id="audioToggle"><span class="dot"></span>Tones &amp; binaural</div>
+  </div>
+
+  <div class="vr-slot" id="vrSlot"><button id="VRButton" style="position: absolute; bottom: 20px; padding: 12px 6px; border: 1px solid rgb(255, 255, 255); border-radius: 4px; background: rgba(0, 0, 0, 0.1); color: rgb(255, 255, 255); font: 13px sans-serif; text-align: center; opacity: 0.5; outline: none; z-index: 999; cursor: auto; left: calc(50% - 75px); width: 150px;">VR NOT SUPPORTED</button></div>
+
+  <p class="hint">Put on your <b>Meta Quest 3</b> and open this page in the browser, then press <b>Enter VR</b>. No headset? Pick a session below to preview it on screen. Headphones recommended for the binaural beats.</p>
+</div>
+
+<div id="caption"></div>
+<div class="endbar" id="endbar">
+  <button id="endBtn">End session</button>
+</div>
+<div id="status">Ready — Enter VR, or pick a session to preview</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+
+/* ============================================================
+   THE SILVA CHAMBER — WebXR rebuild
+   Sections:  A. Session definitions   B. Scene + chamber
+              C. Mental Screen + figures   D. Audio engine
+              E. Voice (narration)   F. Breath (mic)
+              G. VR controllers + in-VR menu   H. Session runtime
+              I. Render loop + boot
+   ============================================================ */
+
+/* ---------- A. SESSION DEFINITIONS ---------- */
+// Each line: { t: seconds-from-start, say: narration, [mood] }
+// mood adjusts the scene: screen color/intensity, light, particle speed, beat Hz.
+const SESSIONS = {
+  alpha: {
+    title: 'Alpha Countdown', n: 'I', glyph: 'X',
+    desc: 'The classic 10→1 descent into the alpha level.',
+    beatHz: 10, carrier: 110, solfeggio: 0, base: { screen:0x16335c, screenI:0.35, fog:0.9, particle:0.4 },
+    script: [
+      { t:0,   mood:{screen:0x16335c, screenI:0.4}, say:"Settle into a comfortable position, and gently close your eyes." },
+      { t:9,   say:"Take a slow, deep breath in… and let it go." },
+      { t:18,  say:"To enter your level, we will count down, from ten to one." },
+      { t:26,  mood:{screenI:0.5}, say:"Ten. Feel relaxation flow over your scalp, and your forehead." },
+      { t:38,  say:"Nine. Your eyes, your face, releasing all tension." },
+      { t:50,  mood:{fog:1.1}, say:"Eight. Your neck and shoulders, growing heavy and loose." },
+      { t:62,  say:"Seven. Your arms, all the way to your fingertips." },
+      { t:74,  mood:{particle:0.25}, say:"Six. Your chest and back, soft and easy." },
+      { t:86,  say:"Five. Drifting deeper, calmer, more relaxed." },
+      { t:98,  mood:{screen:0x10284a, screenI:0.55}, say:"Four. Your hips, your legs, letting go." },
+      { t:110, say:"Three. Deeper still. Nothing to do, nowhere to be." },
+      { t:122, mood:{fog:1.4, particle:0.15}, say:"Two. Approaching your deep, healthy level of mind." },
+      { t:134, mood:{screenI:0.7}, say:"One. You are now at your level. Calm, clear, and aware." },
+      { t:146, say:"Rest here. Whenever you wish to return, count yourself up: one… two… three." },
+    ],
+    dur: 175
+  },
+  screen: {
+    title: 'Mental Screen', n: 'II', glyph: '▢',
+    desc: 'Project images on the screen above your line of sight.',
+    beatHz: 7, carrier: 128, solfeggio: 528, base:{ screen:0x1b2d4a, screenI:0.55, fog:1.0, particle:0.3 },
+    script: [
+      { t:0,  mood:{screenI:0.6}, say:"At your level, become aware of the screen, slightly above your gaze." },
+      { t:11, mood:{screenI:0.8}, say:"It glows softly. This is your Mental Screen." },
+      { t:22, say:"Project onto it something you wish to understand, or to improve." },
+      { t:36, mood:{screenI:1.0}, say:"See it clearly, in light, exactly as you desire it to be." },
+      { t:52, say:"Hold the image with calm certainty. Feel that it is already so." },
+      { t:70, mood:{screenI:0.85}, say:"When you are ready, let the image dissolve into white light." },
+      { t:86, say:"Know that what you have pictured is now set in motion." },
+    ],
+    dur: 120
+  },
+  light: {
+    title: 'White Light Healing', n: 'III', glyph: '☀',
+    desc: 'Draw healing white light down through the apex.',
+    beatHz: 6, carrier: 96, solfeggio: 528, base:{ screen:0x223a4f, screenI:0.4, fog:0.8, particle:0.5, apex:1.0 },
+    script: [
+      { t:0,  mood:{apex:0.6}, say:"Above you, the apex of the chamber begins to open to the light." },
+      { t:12, mood:{apex:1.6, screenI:0.6}, say:"A column of pure white light descends, slowly, toward you." },
+      { t:26, mood:{apex:2.4}, say:"Let it pour over your head, warm and bright, and fill your body." },
+      { t:42, say:"Direct it to wherever healing is needed. See that place flooded with light." },
+      { t:62, mood:{screenI:0.9}, say:"The light dissolves what does not belong, and restores what does." },
+      { t:80, say:"Feel whole, and well, and at peace, bathed in this radiance." },
+      { t:98, mood:{apex:1.0}, say:"Let the light settle softly within you, a quiet glow that remains." },
+    ],
+    dur: 130
+  },
+  counselor: {
+    title: 'Silva Counselor', n: 'IV', glyph: '◬',
+    desc: 'Meet your counselors at the Mental Laboratory.',
+    beatHz: 8, carrier: 120, solfeggio: 432, base:{ screen:0x2a2440, screenI:0.45, fog:1.0, particle:0.3, figures:1 },
+    script: [
+      { t:0,  say:"At your level, picture a doorway of light before you." },
+      { t:12, mood:{figures:1}, say:"Step through, into your Mental Laboratory." },
+      { t:24, say:"To either side, two counselors are arriving to assist you." },
+      { t:40, say:"One brings wisdom, the other brings compassion. Greet them." },
+      { t:58, say:"Tell them what you are working through. Then listen, without forcing." },
+      { t:82, say:"Receive whatever impression comes — a word, an image, a feeling." },
+      { t:104,say:"Thank your counselors. They remain, ready whenever you return." },
+    ],
+    dur: 140
+  }
+};
+
+/* ---------- B. SCENE + CHAMBER ---------- */
+let renderer, scene, camera, clock;
+let chamber = {}, particles, apexLight, apexBeam, screenMesh, figuresGrp;
+const tmp = new THREE.Vector3();
+
+function initScene(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x05040c);
+  scene.fog = new THREE.FogExp2(0x05040c, 0.06);
+
+  camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.05, 200);
+  camera.position.set(0, 1.6, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.xr.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+
+  // --- lighting ---
+  scene.add(new THREE.AmbientLight(0x3a3354, 0.55));
+  const warm = new THREE.PointLight(0xffb066, 1.2, 14, 1.6);
+  warm.position.set(0, 2.3, -1.2); scene.add(warm); chamber.warm = warm;
+
+  apexLight = new THREE.SpotLight(0xeaf2ff, 0.0, 18, Math.PI/7, 0.6, 1.2);
+  apexLight.position.set(0, 7.4, -1.5);
+  apexLight.target.position.set(0, 0, -1.5);
+  scene.add(apexLight, apexLight.target);
+
+  buildChamber();
+  buildApexBeam();
+  buildParticles();
+}
+
+function stone(color, rough){
+  return new THREE.MeshStandardMaterial({ color, roughness:rough??0.95, metalness:0.02 });
+}
+
+function buildChamber(){
+  const W=7, D=9, H=4.2;
+  const wallMat = stone(0x6a5a44, 0.97);
+  const floorMat = stone(0x4a4234, 0.98);
+  const grp = new THREE.Group();
+
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), floorMat);
+  floor.rotation.x = -Math.PI/2; grp.add(floor);
+
+  // four walls
+  const mkWall = (w,h,x,y,z,ry)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), wallMat);
+    m.position.set(x,y,z); m.rotation.y=ry; grp.add(m); return m; };
+  mkWall(W,H, 0, H/2, -D/2, 0);          // front
+  mkWall(W,H, 0, H/2,  D/2, Math.PI);    // back
+  mkWall(D,H, -W/2, H/2, 0, Math.PI/2);  // left
+  mkWall(D,H,  W/2, H/2, 0,-Math.PI/2);  // right
+
+  // corbelled / stepped ceiling toward an apex (Grand-Gallery feel)
+  const ceilMat = stone(0x564a38, 0.97);
+  let cw=W, cd=D, cy=H, steps=6;
+  for(let i=0;i<steps;i++){
+    const t = new THREE.Mesh(new THREE.BoxGeometry(cw, 0.14, cd), ceilMat);
+    t.position.set(0, cy, 0); grp.add(t);
+    cw*= .72; cd*= .72; cy += 0.55;
+  }
+  chamber.apexY = cy;
+
+  // simple altar / sarcophagus
+  const altar = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.55, 2.1), stone(0x7d6a4c,0.9));
+  altar.position.set(0, 0.275, -2.6); grp.add(altar);
+  const lid = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.1, 2.15), stone(0x9a8456,0.7));
+  lid.position.set(0, 0.6, -2.6); grp.add(lid);
+
+  scene.add(grp); chamber.grp = grp;
+}
+
+function buildApexBeam(){
+  // soft volumetric-looking cone from apex
+  const geo = new THREE.ConeGeometry(1.4, chamber.apexY||7, 32, 1, true);
+  const mat = new THREE.MeshBasicMaterial({
+    color:0xdfeaff, transparent:true, opacity:0.0, side:THREE.DoubleSide,
+    depthWrite:false, blending:THREE.AdditiveBlending });
+  apexBeam = new THREE.Mesh(geo, mat);
+  apexBeam.position.set(0, (chamber.apexY||7)/2, -1.5);
+  scene.add(apexBeam);
+}
+
+function buildParticles(){
+  const N=900, pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    pos[i*3]   = (Math.random()-0.5)*7;
+    pos[i*3+1] =  Math.random()*5;
+    pos[i*3+2] = (Math.random()-0.5)*9;
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const m=new THREE.PointsMaterial({ color:0xd9c79a, size:0.02, transparent:true,
+    opacity:0.5, depthWrite:false, blending:THREE.AdditiveBlending });
+  particles=new THREE.Points(g,m); scene.add(particles);
+}
+
+/* ---------- C. MENTAL SCREEN + COUNSELOR FIGURES ---------- */
+function buildMentalScreen(){
+  // Canvas texture: soft radial glow
+  const c=document.createElement('canvas'); c.width=c.height=512;
+  const x=c.getContext('2d');
+  const grd=x.createRadialGradient(256,256,30,256,256,250);
+  grd.addColorStop(0,'rgba(255,255,255,.95)');
+  grd.addColorStop(.4,'rgba(200,225,255,.55)');
+  grd.addColorStop(1,'rgba(120,150,210,0)');
+  x.fillStyle=grd; x.fillRect(0,0,512,512);
+  const tex=new THREE.CanvasTexture(c);
+
+  const mat=new THREE.MeshBasicMaterial({ map:tex, transparent:true, opacity:0.0,
+    blending:THREE.AdditiveBlending, depthWrite:false });
+  screenMesh=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5), mat);
+  // ~20° above eye level (1.6m) at ~2.6m ahead  ->  y = 1.6 + tan(20°)*2.6
+  screenMesh.position.set(0, 1.6 + Math.tan(20*Math.PI/180)*2.6, -2.6);
+  scene.add(screenMesh);
+}
+
+function buildFigures(){
+  figuresGrp=new THREE.Group();
+  const mk=(x,hue)=>{
+    const m=new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.28, 0.9, 6, 14),
+      new THREE.MeshStandardMaterial({ color:hue, emissive:hue, emissiveIntensity:0.4,
+        transparent:true, opacity:0.0, roughness:0.6 }));
+    m.position.set(x, 1.15, -2.2); figuresGrp.add(m);
+    const halo=new THREE.Mesh(new THREE.SphereGeometry(0.16,16,16),
+      new THREE.MeshBasicMaterial({ color:hue, transparent:true, opacity:0.0,
+        blending:THREE.AdditiveBlending, depthWrite:false }));
+    halo.position.set(x, 1.85, -2.2); figuresGrp.add(halo); m.userData.halo=halo;
+    return m;
+  };
+  figuresGrp.userData.a = mk(-1.2, 0xbfe0ff);
+  figuresGrp.userData.b = mk( 1.2, 0xf0d28a);
+  scene.add(figuresGrp);
+}
+
+/* ---------- D. AUDIO ENGINE (binaural + solfeggio + drone) ---------- */
+const Audio = {
+  ctx:null, master:null, nodes:[], on:true, vol:0.5,
+  ensure(){
+    if(this.ctx) return;
+    this.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0; this.master.connect(this.ctx.destination);
+  },
+  start({beatHz=10, carrier=110, solfeggio=0}){
+    if(!this.on) return;
+    this.ensure(); if(this.ctx.state==='suspended') this.ctx.resume();
+    this.stop(true);
+    const t=this.ctx.currentTime;
+
+    // binaural: two oscillators hard-panned L/R via channel merger
+    const merger=this.ctx.createChannelMerger(2);
+    const oscL=this.ctx.createOscillator(), oscR=this.ctx.createOscillator();
+    oscL.type=oscR.type='sine';
+    oscL.frequency.value=carrier - beatHz/2;
+    oscR.frequency.value=carrier + beatHz/2;
+    const gL=this.ctx.createGain(), gR=this.ctx.createGain();
+    gL.gain.value=gR.gain.value=0.16;
+    oscL.connect(gL).connect(merger,0,0);
+    oscR.connect(gR).connect(merger,0,1);
+    merger.connect(this.master);
+    oscL.start(); oscR.start();
+    this.nodes.push(oscL,oscR);
+
+    // low drone, two detuned + slow breathing LFO on gain
+    const d1=this.ctx.createOscillator(), d2=this.ctx.createOscillator();
+    d1.type='triangle'; d2.type='sine';
+    d1.frequency.value=carrier/2; d2.frequency.value=carrier/2+0.6;
+    const dg=this.ctx.createGain(); dg.gain.value=0.05;
+    const lfo=this.ctx.createOscillator(); lfo.frequency.value=0.1; // ~6s swell
+    const lfoG=this.ctx.createGain(); lfoG.gain.value=0.035;
+    lfo.connect(lfoG).connect(dg.gain);
+    d1.connect(dg); d2.connect(dg); dg.connect(this.master);
+    d1.start(); d2.start(); lfo.start();
+    this.nodes.push(d1,d2,lfo);
+
+    // solfeggio shimmer
+    if(solfeggio){
+      const s=this.ctx.createOscillator(); s.type='sine'; s.frequency.value=solfeggio;
+      const sg=this.ctx.createGain(); sg.gain.value=0.04;
+      s.connect(sg).connect(this.master); s.start(); this.nodes.push(s);
+    }
+    // fade in
+    this.master.gain.cancelScheduledValues(t);
+    this.master.gain.setValueAtTime(this.master.gain.value, t);
+    this.master.gain.linearRampToValueAtTime(this.vol, t+4);
+  },
+  stop(immediate){
+    if(!this.ctx) return;
+    const t=this.ctx.currentTime;
+    if(immediate){
+      this.nodes.forEach(n=>{try{n.stop();}catch(e){}});
+      this.nodes=[]; this.master.gain.value=0; return;
+    }
+    this.master.gain.cancelScheduledValues(t);
+    this.master.gain.setValueAtTime(this.master.gain.value, t);
+    this.master.gain.linearRampToValueAtTime(0, t+3);
+    const dead=[...this.nodes]; this.nodes=[];
+    setTimeout(()=>dead.forEach(n=>{try{n.stop();}catch(e){}}), 3200);
+  }
+};
+
+/* ---------- E. VOICE / NARRATION (Web Speech) ---------- */
+const Voice = {
+  on:true, voice:null, timers:[],
+  pick(){
+    const vs=speechSynthesis.getVoices();
+    this.voice = vs.find(v=>/en-GB/i.test(v.lang)&&/female|Samantha|Serena|Karen/i.test(v.name))
+              || vs.find(v=>/en/i.test(v.lang)) || vs[0] || null;
+  },
+  say(text){
+    if(!this.on||!('speechSynthesis'in window)) return;
+    const u=new SpeechSynthesisUtterance(text);
+    if(this.voice) u.voice=this.voice;
+    u.rate=0.82; u.pitch=0.96; u.volume=1;
+    speechSynthesis.speak(u);
+  },
+  scheduleScript(script, onLine){
+    this.cancel();
+    script.forEach(line=>{
+      this.timers.push(setTimeout(()=>{ this.say(line.say); onLine&&onLine(line); }, line.t*1000));
+    });
+  },
+  cancel(){ this.timers.forEach(clearTimeout); this.timers=[]; try{speechSynthesis.cancel();}catch(e){} }
+};
+if('speechSynthesis'in window){ speechSynthesis.onvoiceschanged=()=>Voice.pick(); }
+
+/* ---------- F. BREATH (microphone) ---------- */
+const Breath = {
+  on:false, analyser:null, data:null, level:0, stream:null,
+  async enable(){
+    try{
+      this.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      Audio.ensure();
+      const src=Audio.ctx.createMediaStreamSource(this.stream);
+      this.analyser=Audio.ctx.createAnalyser(); this.analyser.fftSize=512;
+      this.data=new Uint8Array(this.analyser.frequencyBinCount);
+      src.connect(this.analyser); this.on=true; return true;
+    }catch(e){ this.on=false; return false; }
+  },
+  update(){
+    if(!this.on||!this.analyser) return;
+    this.analyser.getByteTimeDomainData(this.data);
+    let sum=0; for(let i=0;i<this.data.length;i++){ const v=(this.data[i]-128)/128; sum+=v*v; }
+    const rms=Math.sqrt(sum/this.data.length);
+    this.level += (rms-this.level)*0.08; // smooth
+  },
+  disable(){ this.on=false; if(this.stream) this.stream.getTracks().forEach(t=>t.stop()); }
+};
+
+/* ---------- G. VR CONTROLLERS + IN-VR MENU ---------- */
+let controllers=[], raycaster=new THREE.Raycaster(), menuGrp=null, menuPanels=[];
+const SESSION_KEYS=['alpha','screen','light','counselor'];
+
+function initControllers(){
+  const factory=new XRControllerModelFactory();
+  for(let i=0;i<2;i++){
+    const ctrl=renderer.xr.getController(i);
+    ctrl.addEventListener('selectstart', onSelect);
+    scene.add(ctrl);
+    const grip=renderer.xr.getControllerGrip(i);
+    grip.add(factory.createControllerModel(grip)); scene.add(grip);
+    // pointer ray
+    const line=new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,-5)]),
+      new THREE.LineBasicMaterial({color:0xd6b06a,transparent:true,opacity:0.6}));
+    ctrl.add(line); controllers.push(ctrl);
+  }
+}
+
+function buildVRMenu(){
+  menuGrp=new THREE.Group(); menuGrp.position.set(0,1.5,-1.8);
+  menuPanels=[];
+  SESSION_KEYS.forEach((key,i)=>{
+    const s=SESSIONS[key];
+    const col = (i%2-0.5)*1.5, row = i<2 ? 0.45 : -0.45;
+    const panel=new THREE.Mesh(
+      new THREE.PlaneGeometry(1.3,0.7),
+      new THREE.MeshBasicMaterial({ map:labelTexture(s.n+'.  '+s.title), transparent:true,
+        opacity:0.92, side:THREE.DoubleSide }));
+    panel.position.set(col,row,0); panel.userData.key=key; panel.userData.base=panel.position.y;
+    menuGrp.add(panel); menuPanels.push(panel);
+  });
+  scene.add(menuGrp); menuGrp.visible=false;
+}
+
+function labelTexture(text){
+  const c=document.createElement('canvas'); c.width=512; c.height=256;
+  const x=c.getContext('2d');
+  x.fillStyle='rgba(12,10,28,.82)'; roundRect(x,8,8,496,240,22); x.fill();
+  x.strokeStyle='#d6b06a'; x.lineWidth=3; roundRect(x,8,8,496,240,22); x.stroke();
+  x.fillStyle='#e9e3d3'; x.textAlign='center'; x.textBaseline='middle';
+  x.font='42px Cinzel, serif'; x.fillText(text,256,128);
+  const t=new THREE.CanvasTexture(c); return t;
+}
+function roundRect(x,a,b,w,h,r){ x.beginPath(); x.moveTo(a+r,b);
+  x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r);
+  x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); }
+
+function onSelect(e){
+  if(!menuGrp||!menuGrp.visible) return;
+  const ctrl=e.target;
+  tmp.set(0,0,-1).applyQuaternion(ctrl.quaternion);
+  raycaster.set(ctrl.getWorldPosition(new THREE.Vector3()), tmp.normalize());
+  const hit=raycaster.intersectObjects(menuPanels)[0];
+  if(hit) startSession(hit.object.userData.key);
+}
+
+function updateMenuHover(){
+  if(!menuGrp||!menuGrp.visible) return;
+  menuPanels.forEach(p=>p.material.opacity=0.92);
+  controllers.forEach(ctrl=>{
+    tmp.set(0,0,-1).applyQuaternion(ctrl.quaternion);
+    raycaster.set(ctrl.getWorldPosition(new THREE.Vector3()), tmp.normalize());
+    const hit=raycaster.intersectObjects(menuPanels)[0];
+    if(hit) hit.object.material.opacity=1.0;
+  });
+}
+
+/* ---------- H. SESSION RUNTIME ---------- */
+let active=null, sessionStart=0, mood=null;
+
+function defaultMood(s){
+  return Object.assign({ screen:0x16335c, screenI:0.0, fog:1.0, particle:0.3, apex:0.0, figures:0 }, s.base||{});
+}
+
+function startSession(key){
+  const s=SESSIONS[key]; if(!s) return;
+  active=s; sessionStart=performance.now()/1000;
+  mood=defaultMood(s);
+  if(menuGrp) menuGrp.visible=false;
+  document.getElementById('intro').classList.add('gone');
+  document.getElementById('endbar').classList.add('show');
+  setStatus(s.title+' — in session');
+
+  Audio.start({ beatHz:s.beatHz, carrier:s.carrier, solfeggio:s.solfeggio });
+  Voice.scheduleScript(s.script, line=>{
+    if(line.mood) Object.assign(mood, line.mood);
+    showCaption(line.say);
+  });
+  // auto end
+  active._endT = setTimeout(endSession, (s.dur)*1000);
+}
+
+function endSession(){
+  if(active && active._endT) clearTimeout(active._endT);
+  active=null;
+  Voice.cancel(); Audio.stop(false);
+  document.getElementById('endbar').classList.remove('show');
+  hideCaption();
+  setStatus('Choose a session, or press Enter VR');
+  if(renderer.xr.isPresenting && menuGrp) menuGrp.visible=true;
+  else document.getElementById('intro').classList.remove('gone');
+}
+
+/* ---------- UI helpers ---------- */
+function setStatus(t){ document.getElementById('status').textContent=t; }
+let capTimer=null;
+function showCaption(t){
+  const el=document.getElementById('caption'); el.textContent=t; el.classList.add('show');
+  clearTimeout(capTimer); capTimer=setTimeout(()=>el.classList.remove('show'), 7000);
+}
+function hideCaption(){ document.getElementById('caption').classList.remove('show'); }
+
+/* ---------- I. RENDER LOOP + BOOT ---------- */
+function animate(){
+  const dt=clock.getDelta(), t=clock.elapsedTime;
+  const m = mood || { screenI:0, particle:0.3, apex:0, fog:1, figures:0 };
+
+  // particles drift
+  if(particles){
+    particles.rotation.y += dt*0.02*(m.particle||0.3);
+    const pa=particles.geometry.attributes.position;
+    for(let i=1;i<pa.count*3;i+=3){ pa.array[i]+=dt*0.05*(m.particle||0.3);
+      if(pa.array[i]>5) pa.array[i]=0; }
+    pa.needsUpdate=true;
+  }
+
+  // breath modulation
+  Breath.update();
+  const breathBoost = Breath.on ? Breath.level*1.6 : 0;
+
+  // mental screen glow / pulse
+  if(screenMesh){
+    const target=(m.screenI||0)+breathBoost;
+    screenMesh.material.opacity += (target-screenMesh.material.opacity)*0.05;
+    const pulse=0.04*Math.sin(t*0.8);
+    screenMesh.scale.setScalar(1+pulse+breathBoost*0.1);
+    if(m.screen) screenMesh.material.color && 0; // color handled via light
+  }
+
+  // warm torch flicker
+  if(chamber.warm) chamber.warm.intensity = 1.0 + Math.sin(t*7.3)*0.05 + Math.sin(t*2.1)*0.07;
+
+  // apex beam / spotlight
+  const apexTarget = (m.apex||0);
+  apexLight.intensity += (apexTarget*1.2 - apexLight.intensity)*0.04;
+  if(apexBeam) apexBeam.material.opacity += (Math.min(apexTarget*0.12,0.35) - apexBeam.material.opacity)*0.04;
+
+  // fog
+  if(scene.fog) scene.fog.density += (0.045*(m.fog||1) - scene.fog.density)*0.02;
+
+  // counselor figures
+  if(figuresGrp){
+    const ft=(m.figures?1:0);
+    [figuresGrp.userData.a, figuresGrp.userData.b].forEach((f,idx)=>{
+      f.material.opacity += (ft*0.8 - f.material.opacity)*0.03;
+      f.userData.halo.material.opacity += (ft*0.7 - f.userData.halo.material.opacity)*0.03;
+      f.position.y = 1.15 + Math.sin(t*0.9+idx*1.7)*0.04;
+      f.userData.halo.position.y = 1.85 + Math.sin(t*0.9+idx*1.7)*0.04;
+    });
+  }
+
+  updateMenuHover();
+  if(menuGrp&&menuGrp.visible){ menuPanels.forEach((p,i)=>{ p.position.y=p.userData.base+Math.sin(t*0.6+i)*0.02; }); }
+
+  renderer.render(scene,camera);
+}
+
+function buildIntroCards(){
+  const wrap=document.getElementById('cards');
+  SESSION_KEYS.forEach(key=>{
+    const s=SESSIONS[key];
+    const div=document.createElement('div'); div.className='card';
+    div.innerHTML=`<div class="n">SESSION ${s.n}</div><div class="t">${s.title}</div>
+      <div class="d">${s.desc}</div><div class="glyph">${s.glyph}</div>`;
+    div.onclick=()=>{ Audio.ensure(); if(Audio.ctx.state==='suspended')Audio.ctx.resume(); startSession(key); };
+    wrap.appendChild(div);
+  });
+}
+
+function bindToggles(){
+  const v=document.getElementById('voiceToggle'), a=document.getElementById('audioToggle'),
+        b=document.getElementById('breathToggle');
+  v.onclick=()=>{ Voice.on=!Voice.on; v.classList.toggle('on',Voice.on); if(!Voice.on)Voice.cancel(); };
+  a.onclick=()=>{ Audio.on=!Audio.on; a.classList.toggle('on',Audio.on); if(!Audio.on)Audio.stop(true); };
+  b.onclick=async()=>{
+    if(Breath.on){ Breath.disable(); b.classList.remove('on'); setStatus('Breath sensing off'); }
+    else { setStatus('Requesting microphone…'); const ok=await Breath.enable();
+      b.classList.toggle('on',ok); setStatus(ok?'Breath sensing on':'Mic permission denied'); }
+  };
+  document.getElementById('endBtn').onclick=endSession;
+}
+
+function boot(){
+  initScene();
+  buildMentalScreen();
+  buildFigures();
+  initControllers();
+  buildVRMenu();
+  buildIntroCards();
+  bindToggles();
+  if('speechSynthesis'in window) Voice.pick();
+
+  // VR button + presentation events
+  const vrBtn=VRButton.createButton(renderer);
+  document.getElementById('vrSlot').appendChild(vrBtn);
+  renderer.xr.addEventListener('sessionstart', ()=>{
+    document.getElementById('intro').classList.add('gone');
+    if(!active && menuGrp) menuGrp.visible=true;
+    setStatus('Point at a panel and pull the trigger');
+  });
+  renderer.xr.addEventListener('sessionend', ()=>{
+    if(menuGrp) menuGrp.visible=false;
+    if(!active) document.getElementById('intro').classList.remove('gone');
+  });
+
+  addEventListener('resize', ()=>{ camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+
+  renderer.setAnimationLoop(animate);
+  setStatus(navigator.xr ? 'Ready — Enter VR, or pick a session to preview' : 'Ready (no VR detected) — pick a session to preview');
+}
+
+boot();
+</script>
+
+
+<canvas data-engine="three.js r161" width="3456" height="2338" style="display: block; width: 1728px; height: 1169px;"></canvas></body></html>
