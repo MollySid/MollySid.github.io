@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)file:///Users/denisemcaprioli/Downloads/silva-vr.html -->
+<!-- saved from url=(0078)file:///Users/denisemcaprioli/Desktop/Silva%20Chamber%20%E2%80%94%20WebXR.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Silva Chamber — WebXR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
-<link href="./Silva Chamber — WebXR_files/css2" rel="stylesheet">
+<link href="file:///Users/denisemcaprioli/Desktop/Silva%20Chamber%20%E2%80%94%20WebXR_files/css2" rel="stylesheet">
 <style>
   :root{
     --void:#070611;
@@ -130,7 +130,7 @@
     <div class="toggle on" id="audioToggle"><span class="dot"></span>Tones &amp; binaural</div>
   </div>
 
-  <div class="vr-slot" id="vrSlot"><button id="VRButton" style="position: absolute; bottom: 20px; padding: 12px 6px; border: 1px solid rgb(255, 255, 255); border-radius: 4px; background: rgba(0, 0, 0, 0.1); color: rgb(255, 255, 255); font: 13px sans-serif; text-align: center; opacity: 0.5; outline: none; z-index: 999; cursor: auto; left: calc(50% - 75px); width: 150px;">VR NOT SUPPORTED</button></div>
+  <div class="vr-slot" id="vrSlot"><button id="VRButton" style="position: absolute; bottom: 20px; padding: 12px 6px; border: 1px solid rgb(255, 255, 255); border-radius: 4px; background: rgba(0, 0, 0, 0.1); color: rgb(255, 255, 255); font: 13px sans-serif; text-align: center; opacity: 0.5; outline: none; z-index: 999; cursor: auto; left: calc(50% - 75px); width: 150px;">VR NOT SUPPORTED</button><button id="VRButton" style="position: absolute; bottom: 20px; padding: 12px 6px; border: 1px solid rgb(255, 255, 255); border-radius: 4px; background: rgba(0, 0, 0, 0.1); color: rgb(255, 255, 255); font: 13px sans-serif; text-align: center; opacity: 0.5; outline: none; z-index: 999; cursor: auto; left: calc(50% - 75px); width: 150px;">VR NOT SUPPORTED</button></div>
 
   <p class="hint">Put on your <b>Meta Quest 3</b> and open this page in the browser, then press <b>Enter VR</b>. No headset? Pick a session below to preview it on screen. Headphones recommended for the binaural beats.</p>
 </div>
@@ -664,6 +664,7 @@ function animate(){
 
 function buildIntroCards(){
   const wrap=document.getElementById('cards');
+  wrap.innerHTML='';                 // clear any pre-existing cards so we never duplicate
   SESSION_KEYS.forEach(key=>{
     const s=SESSIONS[key];
     const div=document.createElement('div'); div.className='card';
@@ -721,4 +722,4 @@ boot();
 </script>
 
 
-<canvas data-engine="three.js r161" width="3456" height="2338" style="display: block; width: 1728px; height: 1169px;"></canvas></body></html>
+<canvas data-engine="three.js r161" width="3456" height="2338" style="display: block; width: 1728px; height: 1169px;"></canvas><canvas data-engine="three.js r161" width="3456" height="2338" style="display: block; width: 1728px; height: 1169px;"></canvas></body></html>
