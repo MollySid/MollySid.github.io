@@ -246,8 +246,17 @@ const tmp = new THREE.Vector3();
 
 function initScene(){
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x05040c);
-  scene.fog = new THREE.FogExp2(0x05040c, 0.06);
+  // Soft-green fallback shown until the garden photo loads (or if it's missing).
+  scene.background = new THREE.Color(0x9cc79a);
+  scene.fog = new THREE.FogExp2(0xbcd4b8, 0.012);
+
+  // Wrap a real 360 equirectangular photo (garden.jpg, sitting next to this file) around the viewer.
+  const _texLoader = new THREE.TextureLoader();
+  _texLoader.load('garden.jpg', function(tex){
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = tex;
+  }, undefined, function(){ console.warn('garden.jpg not found — staying on soft green'); });
 
   camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.05, 200);
   camera.position.set(0, 1.6, 0);
@@ -262,7 +271,7 @@ function initScene(){
   clock = new THREE.Clock();
 
   // --- lighting ---
-  scene.add(new THREE.AmbientLight(0x3a3354, 0.55));
+  scene.add(new THREE.AmbientLight(0xaab9c0, 0.9));
   const warm = new THREE.PointLight(0xffb066, 1.2, 14, 1.6);
   warm.position.set(0, 2.3, -1.2); scene.add(warm); chamber.warm = warm;
 
@@ -281,39 +290,12 @@ function stone(color, rough){
 }
 
 function buildChamber(){
-  const W=7, D=9, H=4.2;
-  const wallMat = stone(0x6a5a44, 0.97);
-  const floorMat = stone(0x4a4234, 0.98);
+  // The environment is now the 360 garden photo, so we no longer build a stone room.
+  // We keep an (empty) group for compatibility and set the apex height the
+  // White Light Healing beam is positioned against.
   const grp = new THREE.Group();
-
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), floorMat);
-  floor.rotation.x = -Math.PI/2; grp.add(floor);
-
-  // four walls
-  const mkWall = (w,h,x,y,z,ry)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), wallMat);
-    m.position.set(x,y,z); m.rotation.y=ry; grp.add(m); return m; };
-  mkWall(W,H, 0, H/2, -D/2, 0);          // front
-  mkWall(W,H, 0, H/2,  D/2, Math.PI);    // back
-  mkWall(D,H, -W/2, H/2, 0, Math.PI/2);  // left
-  mkWall(D,H,  W/2, H/2, 0,-Math.PI/2);  // right
-
-  // corbelled / stepped ceiling toward an apex (Grand-Gallery feel)
-  const ceilMat = stone(0x564a38, 0.97);
-  let cw=W, cd=D, cy=H, steps=6;
-  for(let i=0;i<steps;i++){
-    const t = new THREE.Mesh(new THREE.BoxGeometry(cw, 0.14, cd), ceilMat);
-    t.position.set(0, cy, 0); grp.add(t);
-    cw*= .72; cd*= .72; cy += 0.55;
-  }
-  chamber.apexY = cy;
-
-  // simple altar / sarcophagus
-  const altar = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.55, 2.1), stone(0x7d6a4c,0.9));
-  altar.position.set(0, 0.275, -2.6); grp.add(altar);
-  const lid = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.1, 2.15), stone(0x9a8456,0.7));
-  lid.position.set(0, 0.6, -2.6); grp.add(lid);
-
   scene.add(grp); chamber.grp = grp;
+  chamber.apexY = 7.5; // matches the height the old corbelled ceiling reached
 }
 
 function buildApexBeam(){
