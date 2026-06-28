@@ -188,7 +188,7 @@ function buildCaption() {
     new THREE.PlaneGeometry(3.2,0.55),
     new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false})
   );
-  captionMesh.position.set(0,0.38,-3.2);
+  captionMesh.position.set(0,1.85,-3.2);
   captionMesh.userData.tex=tex;
   scene.add(captionMesh); setCaption('');
 }
@@ -228,143 +228,122 @@ function setCaption(text) {
 var handMesh;
 
 function buildHandSign() {
-  var cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
+  var cv = document.createElement('canvas'); cv.width = 512; cv.height = 580;
   var g  = cv.getContext('2d');
 
-  // Draw a right hand with thumb, index, middle fingertips touching
-  // All in soft glowing violet to match the scene palette
-
   function drawHand() {
-    g.clearRect(0,0,512,512);
+    g.clearRect(0,0,512,580);
 
-    // Skin tone — soft luminous violet-white
-    var skinFill   = 'rgba(210,185,255,0.92)';
-    var skinStroke = 'rgba(160,110,255,0.85)';
-    var glowColor  = 'rgba(150,80,255,0.35)';
+    var fill   = 'rgba(218,195,255,0.93)';
+    var stroke = 'rgba(150,90,255,0.88)';
+    g.lineJoin = 'round'; g.lineCap = 'round';
 
-    // Outer glow
-    g.shadowColor  = 'rgba(160,80,255,0.7)';
-    g.shadowBlur   = 28;
+    // ── Helper: draw one finger as a rounded rectangle ──────────────────────
+    function finger(x, y, w, h, rx) {
+      g.beginPath();
+      g.moveTo(x+rx, y);
+      g.lineTo(x+w-rx, y);
+      g.quadraticCurveTo(x+w, y, x+w, y+rx);
+      g.lineTo(x+w, y+h-rx);
+      g.quadraticCurveTo(x+w, y+h, x+w-rx, y+h);
+      g.lineTo(x+rx, y+h);
+      g.quadraticCurveTo(x, y+h, x, y+h-rx);
+      g.lineTo(x, y+rx);
+      g.quadraticCurveTo(x, y, x+rx, y);
+      g.closePath();
+      g.shadowColor = 'rgba(120,50,255,0.45)'; g.shadowBlur = 12;
+      g.fillStyle = fill; g.fill();
+      g.shadowBlur = 0; g.strokeStyle = stroke; g.lineWidth = 3; g.stroke();
+    }
 
-    // ── Palm ──
+    // ── Palm ────────────────────────────────────────────────────────────────
     g.beginPath();
-    g.moveTo(145, 370);
-    g.bezierCurveTo(110, 340, 108, 290, 120, 255);
-    g.bezierCurveTo(128, 230, 140, 215, 155, 210);
-    g.bezierCurveTo(165, 207, 172, 212, 175, 220);
-    g.bezierCurveTo(178, 200, 185, 185, 195, 178);
-    g.bezierCurveTo(208, 170, 222, 178, 225, 195);
-    g.bezierCurveTo(232, 178, 242, 168, 255, 165);
-    g.bezierCurveTo(270, 162, 282, 175, 282, 195);
-    g.bezierCurveTo(292, 178, 305, 172, 316, 178);
-    g.bezierCurveTo(330, 186, 332, 205, 325, 225);
-    g.bezierCurveTo(345, 220, 368, 235, 372, 265);
-    g.bezierCurveTo(376, 290, 360, 320, 340, 340);
-    g.bezierCurveTo(320, 360, 300, 375, 270, 385);
-    g.bezierCurveTo(240, 395, 200, 398, 175, 392);
-    g.bezierCurveTo(158, 388, 148, 380, 145, 370);
-    g.closePath();
-    g.fillStyle   = skinFill;
-    g.strokeStyle = skinStroke;
-    g.lineWidth   = 3;
-    g.fill(); g.stroke();
+    g.roundRect(140, 320, 220, 190, 22);
+    g.shadowColor = 'rgba(120,50,255,0.45)'; g.shadowBlur = 14;
+    g.fillStyle = fill; g.fill();
+    g.shadowBlur = 0; g.strokeStyle = stroke; g.lineWidth = 3; g.stroke();
 
-    // ── Ring finger (bent down) ──
+    // ── Ring finger — folded (short stub visible at top of palm) ────────────
+    finger(305, 265, 42, 72, 12);
+
+    // ── Pinky — folded ───────────────────────────────────────────────────────
+    finger(355, 285, 34, 52, 10);
+
+    // ── Three extended fingers pointing toward touch point ───────────────────
+    // Middle finger — center, tallest, angled slightly left toward tip
     g.beginPath();
-    g.moveTo(282, 195);
-    g.bezierCurveTo(280, 240, 278, 270, 275, 290);
-    g.bezierCurveTo(272, 305, 268, 310, 265, 308);
-    g.bezierCurveTo(262, 306, 260, 298, 260, 285);
-    g.bezierCurveTo(258, 265, 256, 240, 255, 210);
-    g.bezierCurveTo(258, 195, 268, 185, 275, 183);
-    g.bezierCurveTo(280, 182, 283, 187, 282, 195);
+    g.moveTo(228, 320);
+    g.lineTo(228, 175);
+    g.quadraticCurveTo(228, 148, 218, 132);  // curves left to tip
+    g.quadraticCurveTo(210, 118, 205, 112);  // fingertip
+    g.quadraticCurveTo(198, 118, 194, 132);
+    g.quadraticCurveTo(186, 148, 188, 175);
+    g.lineTo(188, 320);
     g.closePath();
-    g.fillStyle = skinFill; g.fill(); g.stroke();
+    g.shadowColor = 'rgba(120,50,255,0.45)'; g.shadowBlur = 12;
+    g.fillStyle = fill; g.fill();
+    g.shadowBlur = 0; g.strokeStyle = stroke; g.lineWidth = 3; g.stroke();
 
-    // ── Pinky finger (bent down) ──
+    // Index finger — left of middle, tip angles right to meet touch point
     g.beginPath();
-    g.moveTo(316, 178);
-    g.bezierCurveTo(320, 210, 325, 240, 326, 265);
-    g.bezierCurveTo(327, 280, 324, 290, 320, 290);
-    g.bezierCurveTo(316, 290, 312, 280, 310, 265);
-    g.bezierCurveTo(308, 245, 305, 218, 304, 192);
-    g.bezierCurveTo(306, 180, 312, 173, 316, 178);
+    g.moveTo(184, 320);
+    g.lineTo(178, 185);
+    g.quadraticCurveTo(176, 158, 182, 140);
+    g.quadraticCurveTo(188, 120, 196, 112);  // tip
+    g.quadraticCurveTo(202, 108, 206, 112);
+    g.quadraticCurveTo(200, 130, 198, 155);
+    g.lineTo(186, 320);
     g.closePath();
-    g.fillStyle = skinFill; g.fill(); g.stroke();
+    g.shadowColor = 'rgba(120,50,255,0.45)'; g.shadowBlur = 12;
+    g.fillStyle = fill; g.fill();
+    g.shadowBlur = 0; g.strokeStyle = stroke; g.lineWidth = 3; g.stroke();
 
-    // ── Middle finger (extended, angled toward touch point) ──
+    // Thumb — comes from left side of palm, arcs up to touch point
     g.beginPath();
-    g.moveTo(225, 195);
-    g.bezierCurveTo(222, 170, 218, 145, 215, 118);
-    g.bezierCurveTo(213, 100, 215, 88, 220, 85);
-    g.bezierCurveTo(228, 82, 235, 92, 238, 112);
-    // tip curves toward touch
-    g.bezierCurveTo(240, 128, 240, 148, 240, 168);
-    g.bezierCurveTo(242, 155, 248, 145, 252, 148);
-    g.bezierCurveTo(256, 152, 254, 170, 248, 185);
-    g.bezierCurveTo(244, 195, 235, 200, 225, 195);
+    g.moveTo(140, 390);
+    g.bezierCurveTo(115, 370, 105, 330, 110, 295);
+    g.bezierCurveTo(114, 268, 125, 248, 140, 238);
+    g.bezierCurveTo(148, 233, 158, 232, 162, 238);
+    g.bezierCurveTo(170, 228, 178, 210, 186, 200);
+    g.bezierCurveTo(192, 192, 200, 108, 204, 112);  // up to tip
+    g.bezierCurveTo(210, 108, 210, 120, 205, 138);
+    g.bezierCurveTo(196, 165, 188, 200, 185, 225);
+    g.bezierCurveTo(178, 235, 168, 248, 158, 258);
+    g.bezierCurveTo(148, 268, 142, 290, 145, 320);
+    g.lineTo(140, 390);
     g.closePath();
-    g.fillStyle = skinFill; g.fill(); g.stroke();
+    g.shadowColor = 'rgba(120,50,255,0.45)'; g.shadowBlur = 12;
+    g.fillStyle = fill; g.fill();
+    g.shadowBlur = 0; g.strokeStyle = stroke; g.lineWidth = 3; g.stroke();
 
-    // ── Index finger (extended, angled toward touch point) ──
-    g.beginPath();
-    g.moveTo(175, 220);
-    g.bezierCurveTo(170, 195, 165, 168, 163, 140);
-    g.bezierCurveTo(161, 118, 163, 100, 170, 95);
-    g.bezierCurveTo(178, 90, 186, 100, 188, 122);
-    g.bezierCurveTo(190, 140, 192, 160, 195, 178);
-    // tip angles toward touch point (right and slightly down)
-    g.bezierCurveTo(200, 162, 210, 155, 218, 160);
-    g.bezierCurveTo(226, 166, 224, 182, 215, 192);
-    g.bezierCurveTo(205, 202, 185, 208, 175, 220);
-    g.closePath();
-    g.fillStyle = skinFill; g.fill(); g.stroke();
-
-    // ── Thumb (curving up to touch point) ──
-    g.beginPath();
-    g.moveTo(155, 210);
-    g.bezierCurveTo(140, 195, 130, 175, 128, 155);
-    g.bezierCurveTo(126, 138, 130, 125, 138, 122);
-    g.bezierCurveTo(148, 118, 158, 128, 165, 148);
-    // thumb tip curves right toward touch
-    g.bezierCurveTo(170, 158, 178, 162, 188, 158);
-    g.bezierCurveTo(198, 154, 202, 145, 196, 135);
-    g.bezierCurveTo(210, 145, 214, 158, 208, 168);
-    g.bezierCurveTo(200, 180, 185, 185, 175, 185);
-    g.bezierCurveTo(168, 190, 160, 198, 155, 210);
-    g.closePath();
-    g.fillStyle = skinFill; g.fill(); g.stroke();
-
-    // ── Touch point glow — where the three fingertips meet ──
-    g.shadowBlur = 0;
-    var glow = g.createRadialGradient(210, 158, 2, 210, 158, 32);
-    glow.addColorStop(0,   'rgba(255,220,255,0.98)');
-    glow.addColorStop(0.4, 'rgba(200,140,255,0.7)');
+    // ── Touch point glow ─────────────────────────────────────────────────────
+    var glow = g.createRadialGradient(204,112,2, 204,112,36);
+    glow.addColorStop(0,   'rgba(255,230,255,1)');
+    glow.addColorStop(0.35,'rgba(200,130,255,0.75)');
     glow.addColorStop(1,   'rgba(140,60,255,0)');
     g.fillStyle = glow;
-    g.beginPath(); g.arc(210, 158, 32, 0, Math.PI*2); g.fill();
+    g.beginPath(); g.arc(204,112,36,0,Math.PI*2); g.fill();
 
-    // Bright center dot
-    g.fillStyle = 'rgba(255,240,255,0.98)';
-    g.beginPath(); g.arc(210, 158, 7, 0, Math.PI*2); g.fill();
+    // Bright dot at center
+    g.fillStyle = 'rgba(255,245,255,1)';
+    g.beginPath(); g.arc(204,112,7,0,Math.PI*2); g.fill();
 
-    // Label text
-    g.shadowColor='rgba(80,0,160,0.9)'; g.shadowBlur=14;
-    g.font='italic 28px Georgia, serif';
-    g.fillStyle='rgba(230,210,255,0.92)';
+    // ── Label ─────────────────────────────────────────────────────────────────
+    g.shadowColor='rgba(80,0,160,0.85)'; g.shadowBlur=14;
+    g.font='italic 26px Georgia, serif';
+    g.fillStyle='rgba(225,205,255,0.92)';
     g.textAlign='center';
-    g.fillText('Three Finger Technique', 256, 468);
+    g.fillText('Thumb · Index · Middle', 256, 548);
   }
 
   drawHand();
 
   var tex = new THREE.CanvasTexture(cv);
   handMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.4, 1.4),
-    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide })
+    new THREE.PlaneGeometry(1.5, 1.7),
+    new THREE.MeshBasicMaterial({ map:tex, transparent:true, depthWrite:false, side:THREE.DoubleSide })
   );
-  // Position to the right of the mirror/orb, at eye level
-  handMesh.position.set(1.4, 1.5, -3.0);
+  handMesh.position.set(1.5, 1.8, -3.0);
   handMesh.userData.tex = tex;
   handMesh.visible = false;
   scene.add(handMesh);
@@ -381,7 +360,7 @@ function buildNumber() {
     new THREE.PlaneGeometry(1.4,0.84),
     new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})
   );
-  numberMesh.position.set(0,2.32,-3.1);
+  numberMesh.position.set(0,2.9,-3.1);
   numberMesh.renderOrder=999;
   numberMesh.userData.tex=tex;
   scene.add(numberMesh);
@@ -472,26 +451,26 @@ function startSession() {
   setTimeout(function(){ setCaption("Your Three Finger anchor is now conditioned."); }, 228469);
   setTimeout(function(){ setCaption(""); }, 233469);
 
-  setTimeout(function(){ showNumber('10'); }, 35000);
-  setTimeout(function(){ clearNumber(); }, 37000);
-  setTimeout(function(){ showNumber('9'); }, 37200);
-  setTimeout(function(){ clearNumber(); }, 39200);
-  setTimeout(function(){ showNumber('8'); }, 39400);
-  setTimeout(function(){ clearNumber(); }, 41400);
-  setTimeout(function(){ showNumber('7'); }, 41600);
-  setTimeout(function(){ clearNumber(); }, 43600);
-  setTimeout(function(){ showNumber('6'); }, 43800);
-  setTimeout(function(){ clearNumber(); }, 45800);
-  setTimeout(function(){ showNumber('5'); }, 46000);
-  setTimeout(function(){ clearNumber(); }, 48000);
-  setTimeout(function(){ showNumber('4'); }, 48200);
-  setTimeout(function(){ clearNumber(); }, 50200);
-  setTimeout(function(){ showNumber('3'); }, 50400);
-  setTimeout(function(){ clearNumber(); }, 52400);
-  setTimeout(function(){ showNumber('2'); }, 52600);
-  setTimeout(function(){ clearNumber(); }, 54600);
-  setTimeout(function(){ showNumber('1'); }, 54800);
-  setTimeout(function(){ clearNumber(); }, 56800);
+  setTimeout(function(){ showNumber('10'); }, 38000);
+  setTimeout(function(){ clearNumber(); }, 40200);
+  setTimeout(function(){ showNumber('9'); }, 40500);
+  setTimeout(function(){ clearNumber(); }, 42700);
+  setTimeout(function(){ showNumber('8'); }, 43000);
+  setTimeout(function(){ clearNumber(); }, 45200);
+  setTimeout(function(){ showNumber('7'); }, 45500);
+  setTimeout(function(){ clearNumber(); }, 47700);
+  setTimeout(function(){ showNumber('6'); }, 48000);
+  setTimeout(function(){ clearNumber(); }, 55200);
+  setTimeout(function(){ showNumber('5'); }, 50500);
+  setTimeout(function(){ clearNumber(); }, 52700);
+  setTimeout(function(){ showNumber('4'); }, 53000);
+  setTimeout(function(){ clearNumber(); }, 55200);
+  setTimeout(function(){ showNumber('3'); }, 55500);
+  setTimeout(function(){ clearNumber(); }, 57700);
+  setTimeout(function(){ showNumber('2'); }, 58000);
+  setTimeout(function(){ clearNumber(); }, 60200);
+  setTimeout(function(){ showNumber('1'); }, 60500);
+  setTimeout(function(){ clearNumber(); }, 62700);
 
   setTimeout(function(){ showNumber('1'); }, 213469);
   setTimeout(function(){ clearNumber(); }, 215969);
