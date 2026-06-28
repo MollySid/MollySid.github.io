@@ -188,7 +188,7 @@ function buildCaption() {
     new THREE.PlaneGeometry(3.2,0.55),
     new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false})
   );
-  captionMesh.position.set(0,1.85,-3.2);
+  captionMesh.position.set(0,2.15,-3.2);
   captionMesh.userData.tex=tex;
   scene.add(captionMesh); setCaption('');
 }
@@ -242,7 +242,7 @@ function buildHandSign() {
     new THREE.PlaneGeometry(1.4, 2.0),
     new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide })
   );
-  handMesh.position.set(1.5, 1.85, -3.0);
+  handMesh.position.set(1.5, 2.2, -3.0);
   handMesh.visible = false;
   scene.add(handMesh);
 }
@@ -349,37 +349,37 @@ function startSession() {
   setTimeout(function(){ setCaption("Your Three Finger anchor is now conditioned."); }, 228469);
   setTimeout(function(){ setCaption(""); }, 233469);
 
-  setTimeout(function(){ showNumber('10'); }, 51000);
-  setTimeout(function(){ clearNumber(); }, 53200);
-  setTimeout(function(){ showNumber('9'); }, 53500);
-  setTimeout(function(){ clearNumber(); }, 55700);
-  setTimeout(function(){ showNumber('8'); }, 56000);
-  setTimeout(function(){ clearNumber(); }, 58200);
-  setTimeout(function(){ showNumber('7'); }, 58500);
-  setTimeout(function(){ clearNumber(); }, 60700);
-  setTimeout(function(){ showNumber('6'); }, 61000);
-  setTimeout(function(){ clearNumber(); }, 68200);
-  setTimeout(function(){ showNumber('5'); }, 63500);
-  setTimeout(function(){ clearNumber(); }, 65700);
-  setTimeout(function(){ showNumber('4'); }, 66000);
-  setTimeout(function(){ clearNumber(); }, 68200);
-  setTimeout(function(){ showNumber('3'); }, 68500);
-  setTimeout(function(){ clearNumber(); }, 70700);
-  setTimeout(function(){ showNumber('2'); }, 71000);
-  setTimeout(function(){ clearNumber(); }, 73200);
-  setTimeout(function(){ showNumber('1'); }, 73500);
-  setTimeout(function(){ clearNumber(); }, 75700);
+  setTimeout(function(){ showNumber('10'); }, 18900);
+  setTimeout(function(){ clearNumber(); }, 21100);
+  setTimeout(function(){ showNumber('9'); }, 21400);
+  setTimeout(function(){ clearNumber(); }, 23600);
+  setTimeout(function(){ showNumber('8'); }, 23900);
+  setTimeout(function(){ clearNumber(); }, 26100);
+  setTimeout(function(){ showNumber('7'); }, 26400);
+  setTimeout(function(){ clearNumber(); }, 28600);
+  setTimeout(function(){ showNumber('6'); }, 28900);
+  setTimeout(function(){ clearNumber(); }, 36100);
+  setTimeout(function(){ showNumber('5'); }, 31400);
+  setTimeout(function(){ clearNumber(); }, 33600);
+  setTimeout(function(){ showNumber('4'); }, 33900);
+  setTimeout(function(){ clearNumber(); }, 36100);
+  setTimeout(function(){ showNumber('3'); }, 36400);
+  setTimeout(function(){ clearNumber(); }, 38600);
+  setTimeout(function(){ showNumber('2'); }, 38900);
+  setTimeout(function(){ clearNumber(); }, 41100);
+  setTimeout(function(){ showNumber('1'); }, 41400);
+  setTimeout(function(){ clearNumber(); }, 43600);
 
-  setTimeout(function(){ showNumber('1'); }, 213469);
-  setTimeout(function(){ clearNumber(); }, 215969);
-  setTimeout(function(){ showNumber('2'); }, 216269);
-  setTimeout(function(){ clearNumber(); }, 218769);
-  setTimeout(function(){ showNumber('3'); }, 219069);
-  setTimeout(function(){ clearNumber(); }, 221569);
-  setTimeout(function(){ showNumber('4'); }, 221869);
-  setTimeout(function(){ clearNumber(); }, 224369);
-  setTimeout(function(){ showNumber('5'); }, 224669);
-  setTimeout(function(){ clearNumber(); }, 227169);
+  setTimeout(function(){ showNumber('1'); }, 208310);
+  setTimeout(function(){ clearNumber(); }, 210510);
+  setTimeout(function(){ showNumber('2'); }, 210810);
+  setTimeout(function(){ clearNumber(); }, 213010);
+  setTimeout(function(){ showNumber('3'); }, 213310);
+  setTimeout(function(){ clearNumber(); }, 215510);
+  setTimeout(function(){ showNumber('4'); }, 215810);
+  setTimeout(function(){ clearNumber(); }, 218010);
+  setTimeout(function(){ showNumber('5'); }, 218310);
+  setTimeout(function(){ clearNumber(); }, 220510);
 
   audio.addEventListener('ended',function(){ stopSound(); setCaption(''); },{once:true});
 }
