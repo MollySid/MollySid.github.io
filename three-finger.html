@@ -188,7 +188,7 @@ function buildCaption() {
     new THREE.PlaneGeometry(3.2,0.55),
     new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false})
   );
-  captionMesh.position.set(0,2.15,-3.2);
+  captionMesh.position.set(0,2.45,-3.2);
   captionMesh.userData.tex=tex;
   scene.add(captionMesh); setCaption('');
 }
@@ -242,7 +242,7 @@ function buildHandSign() {
     new THREE.PlaneGeometry(1.4, 2.0),
     new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide })
   );
-  handMesh.position.set(1.5, 2.2, -3.0);
+  handMesh.position.set(2.2, 2.2, -3.0);
   handMesh.visible = false;
   scene.add(handMesh);
 }
@@ -258,7 +258,7 @@ function buildNumber() {
     new THREE.PlaneGeometry(1.4,0.84),
     new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false})
   );
-  numberMesh.position.set(0,2.9,-3.1);
+  numberMesh.position.set(0,3.2,-3.1);
   numberMesh.renderOrder=999;
   numberMesh.userData.tex=tex;
   scene.add(numberMesh);
@@ -349,26 +349,26 @@ function startSession() {
   setTimeout(function(){ setCaption("Your Three Finger anchor is now conditioned."); }, 228469);
   setTimeout(function(){ setCaption(""); }, 233469);
 
-  setTimeout(function(){ showNumber('10'); }, 18900);
-  setTimeout(function(){ clearNumber(); }, 21100);
-  setTimeout(function(){ showNumber('9'); }, 21400);
-  setTimeout(function(){ clearNumber(); }, 23600);
-  setTimeout(function(){ showNumber('8'); }, 23900);
-  setTimeout(function(){ clearNumber(); }, 26100);
-  setTimeout(function(){ showNumber('7'); }, 26400);
-  setTimeout(function(){ clearNumber(); }, 28600);
-  setTimeout(function(){ showNumber('6'); }, 28900);
-  setTimeout(function(){ clearNumber(); }, 36100);
-  setTimeout(function(){ showNumber('5'); }, 31400);
-  setTimeout(function(){ clearNumber(); }, 33600);
-  setTimeout(function(){ showNumber('4'); }, 33900);
-  setTimeout(function(){ clearNumber(); }, 36100);
-  setTimeout(function(){ showNumber('3'); }, 36400);
-  setTimeout(function(){ clearNumber(); }, 38600);
-  setTimeout(function(){ showNumber('2'); }, 38900);
-  setTimeout(function(){ clearNumber(); }, 41100);
-  setTimeout(function(){ showNumber('1'); }, 41400);
-  setTimeout(function(){ clearNumber(); }, 43600);
+  setTimeout(function(){ showNumber('10'); }, 27800);
+  setTimeout(function(){ clearNumber(); }, 29800);
+  setTimeout(function(){ showNumber('9'); }, 31600);
+  setTimeout(function(){ clearNumber(); }, 43800);
+  setTimeout(function(){ showNumber('8'); }, 33000);
+  setTimeout(function(){ clearNumber(); }, 35000);
+  setTimeout(function(){ showNumber('7'); }, 35500);
+  setTimeout(function(){ clearNumber(); }, 37500);
+  setTimeout(function(){ showNumber('6'); }, 39700);
+  setTimeout(function(){ clearNumber(); }, 45700);
+  setTimeout(function(){ showNumber('5'); }, 41800);
+  setTimeout(function(){ clearNumber(); }, 43800);
+  setTimeout(function(){ showNumber('4'); }, 43700);
+  setTimeout(function(){ clearNumber(); }, 45700);
+  setTimeout(function(){ showNumber('3'); }, 47600);
+  setTimeout(function(){ clearNumber(); }, 49600);
+  setTimeout(function(){ showNumber('2'); }, 49500);
+  setTimeout(function(){ clearNumber(); }, 51500);
+  setTimeout(function(){ showNumber('1'); }, 51900);
+  setTimeout(function(){ clearNumber(); }, 53900);
 
   setTimeout(function(){ showNumber('1'); }, 208310);
   setTimeout(function(){ clearNumber(); }, 210510);
