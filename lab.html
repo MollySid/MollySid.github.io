@@ -48,7 +48,7 @@ const CUES = {"part1": [[0.0, "Be still, and let yourself relax."], [5.8, "You'r
 /* =============================================== */
 
 let renderer, scene, camera, clock;
-let stars, dust, nebulae=[], galaxies=[], shooters=[], destGlow, skySphere, ambient;
+let stars, dust, nebulae=[], galaxies=[], shooters=[], destGlow, skySphere, ambient, windowFX=null;
 let capGroup, capCanvas, capCtx, capTex, capMat;
 let clockGroup, calGroup, screenMesh, screenFrame, counselors=[];
 let audio1, audio2, audioCtx, toneMaster=null, reflectDone=false;
@@ -153,7 +153,6 @@ function buildSkySphere(){const g=new THREE.SphereGeometry(60,64,40);g.scale(-1,
   skySphere.position.y=ROOMY;scene.add(skySphere);}
 
 /* ---------- animated space inside the round window ---------- */
-let windowFX=null;
 function buildWindowFX(){
   const grp=new THREE.Group();
   // drifting stars within a disc that sits over the window opening
