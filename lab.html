@@ -26,6 +26,7 @@
 </style>
 </head>
 <body>
+  <div id="err" style="display:none;position:fixed;bottom:8px;left:8px;z-index:9999;color:#f99;font:12px monospace;background:rgba(0,0,0,.6);padding:4px 8px;border-radius:4px"></div>
   <div id="begin">
     <h1>The Mental Laboratory</h1>
     <div class="sub">A Silva Method journey into the creative mind</div>
@@ -35,7 +36,7 @@
        <br><br>For the full experience, put on your headset and choose <em>Enter VR</em>.</p>
     <button id="startBtn" class="btn">Begin the Journey</button>
     <div id="vrwrap"></div>
-    <div style="margin-top:18px;font-family:Georgia,serif;font-size:13px;color:#9a8f74;letter-spacing:1px">version 11 &middot; slower countdown, guests fixed</div>
+    <div style="margin-top:18px;font-family:Georgia,serif;font-size:13px;color:#9a8f74;letter-spacing:1px">version 13 &middot; room rotated to face window</div>
   </div>
   <div id="replay"><button id="replayBtn">Begin again</button></div>
 
@@ -151,14 +152,15 @@ function buildSkySphere(){const g=new THREE.SphereGeometry(60,64,40);g.scale(-1,
   const tex=new THREE.Texture();const img=new Image();img.onload=()=>{tex.image=img;tex.needsUpdate=true;};img.src=OBS_IMAGE;
   if(THREE.sRGBEncoding!==undefined)tex.encoding=THREE.sRGBEncoding;
   skySphere=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:0}));
-  skySphere.position.y=ROOMY;scene.add(skySphere);}
+  skySphere.position.y=ROOMY;skySphere.rotation.y=-Math.PI/2; // bring the window (and its chairs) to face forward
+  scene.add(skySphere);}
 
 /* ---------- animated space inside the round window ---------- */
 function buildWindowFX(){
   const grp=new THREE.Group();
   // drifting stars within a disc that sits over the window opening
-  const N=140,sg=new THREE.BufferGeometry(),pos=new Float32Array(N*3);
-  const R=2.4; // disc radius over the window opening
+  const N=120,sg=new THREE.BufferGeometry(),pos=new Float32Array(N*3);
+  const R=1.9; // disc radius over the upper window
   for(let i=0;i<N;i++){const rr=R*Math.sqrt(Math.random()),a=Math.random()*6.2832;
     pos[i*3]=Math.cos(a)*rr;pos[i*3+1]=Math.sin(a)*rr;pos[i*3+2]=(Math.random()-0.5)*0.6;}
   sg.setAttribute('position',new THREE.BufferAttribute(pos,3));
@@ -172,7 +174,7 @@ function buildWindowFX(){
     s.position.set((Math.random()-0.5)*2.0,(Math.random()-0.5)*1.7,-0.2-Math.random()*0.4);
     s.material.opacity=0;s.userData.base=0.12+Math.random()*0.10;s.userData.spin=(Math.random()-0.5)*0.06;
     grp.add(s);grp.userData.neb.push(s);}
-  placeAE(grp,0,16,6.2);              // centred on the window opening
+  placeAE(grp,0,28,6.6);             // up in the window opening, clear of the screen
   grp.lookAt(0,ROOMY,0);             // face the room centre
   grp.visible=false;windowFX=grp;scene.add(grp);
 }
@@ -231,7 +233,7 @@ function buildScreen(){
     new THREE.MeshBasicMaterial({color:0x9fc4e8,transparent:true,opacity:0,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
   glow.position.z=-0.02;window._screenGlow=glow;
   const grp=new THREE.Group();grp.add(glow);grp.add(screenFrame);grp.add(screenMesh);
-  placeAE(grp,0,-2,2.9);grp.userData.flip=true;grp.userData.face=true; // centred, just above the seated counsellors
+  placeAE(grp,0,-6,2.9);grp.userData.flip=true;grp.userData.face=true; // centred, just above the seated counsellors
   grp.visible=false;screenMesh.userData.parentGrp=grp;faceList.push(grp);scene.add(grp);
   window._screenGrp=grp;
 }
@@ -254,7 +256,7 @@ function makeFigure(color,halo){
 function buildCounselors(){
   const A=makeFigure(0xffd6a0,'rgba(255,206,150,A)'); // warm — left chair
   const B=makeFigure(0xc6dcff,'rgba(180,210,255,A)'); // cool — right chair
-  A.userData.seat={az:-32,el:-16,dist:3.0}; B.userData.seat={az:34,el:-18,dist:2.8};
+  A.userData.seat={az:-36,el:-19,dist:3.0}; B.userData.seat={az:40,el:-20,dist:2.8};
   for(const F of [A,B]){const s=F.userData.seat;
     placeAE(F,s.az,s.el-6,s.dist+0.3); // fade up into the seat (short, clear)
     F.userData.enterStart=F.position.clone();
@@ -302,6 +304,7 @@ function mkAudio(d){const a=new Audio('data:audio/mp3;base64,'+d);a.preload='aut
 let carrierR=null, beatLFO=null, isoGain=null;
 const CARRIER=528; // Hz anchor (Solfeggio)
 function startTone(){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  narrGain=audioCtx.createGain();narrGain.gain.value=1.0;narrGain.connect(audioCtx.destination);
   toneMaster=audioCtx.createGain();toneMaster.gain.value=0;toneMaster.connect(audioCtx.destination);
   // isochronic gate: amplitude pulses at the beat rate (works on open Quest speakers)
   isoGain=audioCtx.createGain();isoGain.gain.value=0.72;isoGain.connect(toneMaster);
@@ -322,25 +325,33 @@ function setBeat(rate,glide){if(!audioCtx||!carrierR)return;const n=audioCtx.cur
 function setBed(level,sec){if(toneMaster&&audioCtx)toneMaster.gain.linearRampToValueAtTime(level,audioCtx.currentTime+sec);}
 function fadeTone(to,d){setBed(to,d);}
 
+/* ---------- narration via Web Audio (fully decoded, no streaming stall) ---------- */
+let narrGain=null, p1buf=null, p2buf=null, p1src=null, p2src=null, p1Start=0, p2Start=0;
+function b64ToAB(b64){const bin=atob(b64);const n=bin.length;const u=new Uint8Array(n);for(let i=0;i<n;i++)u[i]=bin.charCodeAt(i);return u.buffer;}
+function decodeClip(b64,cb){try{audioCtx.decodeAudioData(b64ToAB(b64),cb,e=>showErr('audio decode failed'));}catch(e){showErr('audio: '+e.message);}}
+function playBuf(buf,onend){const s=audioCtx.createBufferSource();s.buffer=buf;s.connect(narrGain);
+  s.onended=()=>{if(!s._stopped&&onend)onend();};s.start();return s;}
+function narrTime(){return phase==='part1'?(audioCtx.currentTime-p1Start):(audioCtx.currentTime-p2Start);}
+function showErr(m){try{let d=document.getElementById('err');if(d){d.style.display='block';d.textContent=m;}}catch(e){}}
+
 /* ---------- flow ---------- */
 function beginExperience(){if(phase!=='idle')return;
   const b=document.getElementById('begin');b.classList.add('hidden');setTimeout(()=>b.style.display='none',1300);
-  audio1=mkAudio(PART1_AUDIO);audio2=mkAudio(PART2_AUDIO);
   startTone();phase='part1';activeCues=CUES.part1;curCueIdx=-1;
   setBeat(12,1);                 // start: light alpha
   setBeat(8,150);                // glide down to deep alpha across the descent
-  audio1.play().catch(()=>{});audio1.addEventListener('ended',toTransition,{once:true});}
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+  decodeClip(PART1_AUDIO,buf=>{p1buf=buf;p1Start=audioCtx.currentTime;p1src=playBuf(buf,toTransition);});
+  decodeClip(PART2_AUDIO,buf=>{p2buf=buf;});}   // pre-decode room audio in the background
 function toTransition(){phase='transition';transT=0;activeCues=[];setCaption('');
   setBeat(9.5,8);setBed(0.075,4);}   // arrival swell, settle in alpha
 function toPart2(){phase='part2';activeCues=CUES.part2;curCueIdx=-1;reflectDone=false;
   setBeat(9.5,4);setBed(0.05,8);     // hold alpha, subtle under voice
-  audio2.play().catch(()=>{});audio2.addEventListener('ended',toDone,{once:true});}
+  if(p2buf){p2Start=audioCtx.currentTime;p2src=playBuf(p2buf,toDone);}
+  else decodeClip(PART2_AUDIO,buf=>{p2buf=buf;p2Start=audioCtx.currentTime;p2src=playBuf(buf,toDone);});}
 function toReflection(){phase='reflection';reflectT=0;reflIdx=-1;activeCues=[];setCaption('');
-  roomActivate.screen=2;
-  setBeat(6.5,20);setBed(0.092,10);} // dip into theta, swell up in the silence
-function resumePart2(){phase='part2';reflectDone=true;activeCues=CUES.part2;
-  setBeat(9.5,14);setBed(0.05,8);
-  audio2.play().catch(()=>{});}
+  roomActivate.screen=2;setBeat(6.5,20);setBed(0.092,10);}
+function resumePart2(){phase='part2';reflectDone=true;activeCues=CUES.part2;setBeat(9.5,14);setBed(0.05,8);}
 function toDone(){phase='done';setCaption('');setBeat(13,10);fadeTone(0,9);document.getElementById('replay').style.display='block';}
 
 function fireEvent(ev){if(!ev)return;
@@ -353,14 +364,13 @@ function updateCueByTime(t){let idx=-1;
   if(idx!==curCueIdx&&idx>=0){curCueIdx=idx;const c=activeCues[idx];setCaption(c[1]);if(c[2])fireEvent(c[2]);}}
 
 /* ---------- main loop ---------- */
-function tick(){
+function tick(){try{
   const dt=Math.min(clock.getDelta(),0.05),t=clock.elapsedTime;
   const inRoom=(phase==='part2'||phase==='reflection'||phase==='done');
   const inCosmos=(phase==='idle'||phase==='part1'||phase==='transition');
 
-  if(phase==='part1'&&audio1)updateCueByTime(audio1.currentTime);
-  if(phase==='part2'&&audio2){updateCueByTime(audio2.currentTime);
-    if(!reflectDone&&audio2.currentTime>=CUES.pauseAt){audio2.pause();toReflection();}}
+  if(phase==='part1'&&p1src)updateCueByTime(audioCtx.currentTime-p1Start);
+  if(phase==='part2'&&p2src)updateCueByTime(audioCtx.currentTime-p2Start);
 
   if(phase==='reflection'){reflectT+=dt;const R=CUES.reflection;
     let ix=-1;for(let i=0;i<R.length;i++){if(reflectT>=R[i][0])ix=i;else break;}
@@ -373,7 +383,7 @@ function tick(){
     capGroup.children[0].position.y=pendingBig?0.22:0.0;pendingCaption=null;capTargetOpacity=1;}
   capOpacity+=(capTargetOpacity-capOpacity)*Math.min(dt*3.0,1);capMat.opacity=capOpacity;
 
-  if(phase==='part1'&&audio1)warmth=Math.min(audio1.currentTime/150,1);
+  if(phase==='part1'&&p1src)warmth=Math.min((audioCtx.currentTime-p1Start)/150,1);
 
   // ----- cosmos animation -----
   if(stars&&inCosmos){const p=stars.geometry.attributes.position,sp=2.2+warmth*1.4;
@@ -446,7 +456,7 @@ function tick(){
   counselors.forEach(F=>{if(F.visible){const yy=F.position.y;F.lookAt(_cp.x,yy,_cp.z);}});
 
   renderer.render(scene,camera);
-}
+}catch(e){showErr('loop: '+e.message);}}
 function approach(grp,flag,dt,max){grp.userData._o=(grp.userData._o||0);
   const tgt=flag?max:0;grp.userData._o+=(tgt-grp.userData._o)*Math.min(dt*0.8,1);
   setGroupOpacity(grp,grp.userData._o);return grp.userData._o;}
